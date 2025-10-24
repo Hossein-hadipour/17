@@ -1,0 +1,1012 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>داستان‌گوی دیجیتال | حسین هادی پور</title>
+  <!-- کتابخانه‌ها -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #fd79a8;
+      --secondary: #fdcb6e;
+      --bg: #f8f9fa;
+      --card: white;
+      --text: #2d3436;
+      --border: #dfe6e9;
+      --shadow: rgba(0,0,0,0.12);
+    }
+    [data-theme="dark"] {
+      --primary: #ff6b9d;
+      --secondary: #feca57;
+      --bg: #2d3436;
+      --card: #353b48;
+      --text: #dfe4ea;
+      --border: #57606f;
+      --shadow: rgba(0,0,0,0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tahoma', sans-serif; }
+    body {
+      background: linear-gradient(135deg, #74b9ff, #0984e3);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 15px;
+      overflow-x: hidden;
+      position: relative;
+      transition: all 0.5s ease;
+    }
+
+    .particles {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: -1;
+    }
+    .particle {
+      position: absolute;
+      font-size: 1.5em;
+      opacity: 0;
+      animation: float 6s infinite ease-in-out;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      50% { opacity: 0.8; }
+      100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: rgba(255,255,255,0.95);
+      border-radius: 30px;
+      box-shadow: 0 25px 60px var(--shadow);
+      overflow: hidden;
+      animation: popIn 1s ease-out;
+      backdrop-filter: blur(12px);
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    header {
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      position: relative;
+    }
+    h1 { font-size: 2.6em; margin-bottom: 12px; text-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+    p.subtitle { font-size: 1.25em; opacity: 0.9; }
+
+    .theme-toggle {
+      position: absolute;
+      top: 15px; left: 15px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      font-size: 1.4em;
+      cursor: pointer;
+      transition: 0.4s;
+    }
+    .theme-toggle:hover { transform: rotate(360deg); }
+
+    .story-maker {
+      padding: 40px;
+      background: var(--bg);
+    }
+    .input-group {
+      margin-bottom: 26px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: var(--text);
+      font-size: 1.1em;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 16px;
+      border: 3px solid var(--border);
+      border-radius: 16px;
+      font-size: 1.05em;
+      background: var(--card);
+      color: var(--text);
+    }
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 5px rgba(253, 121, 168, 0.3);
+    }
+    textarea { height: 130px; resize: vertical; }
+
+    .upload-label {
+      display: inline-block;
+      background: var(--secondary);
+      color: #2d3436;
+      padding: 12px 26px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 0.95em;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+    .upload-label:hover {
+      background: #e17055;
+      color: white;
+    }
+    input[type="file"] { display: none; }
+
+    .media-preview {
+      margin: 15px 0;
+      padding: 15px;
+      background: var(--card);
+      border-radius: 12px;
+      border: 2px dashed var(--border);
+      text-align: center;
+      position: relative;
+    }
+    .media-preview audio, .media-preview video {
+      width: 100%;
+      max-height: 180px;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+    .remove-media {
+      position: absolute;
+      top: 5px; right: 5px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+
+    .template-select {
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .template-btn {
+      background: var(--card);
+      color: var(--text);
+      border: 2px solid var(--border);
+      padding: 12px 22px;
+      margin: 6px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 0.95em;
+      transition: 0.4s;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .template-btn.visible {
+      opacity: 1;
+      transform: translateY(0);
+      animation: fadeUp 0.5s ease-out forwards;
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    .template-btn:hover, .template-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 16px 34px;
+      font-size: 1.15em;
+      border-radius: 50px;
+      cursor: pointer;
+      margin: 10px 6px;
+      box-shadow: 0 6px 18px rgba(253,121,168,0.4);
+      opacity: 0;
+      transform: translateY(20px);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn.ripple::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255,255,255,0.4);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: ripple 0.6s linear;
+    }
+    @keyframes ripple {
+      to { width: 200px; height: 200px; opacity: 0; }
+    }
+    .btn.visible {
+      opacity: 1;
+      transform: translateY(0);
+      animation: fadeUp 0.5s ease-out forwards;
+    }
+    .btn:hover {
+      background: #e84393;
+      transform: translateY(-4px);
+    }
+
+    .word-count {
+      text-align: center;
+      margin: 18px 0;
+      color: var(--text);
+      font-size: 1em;
+      opacity: 0.8;
+    }
+
+    .preview {
+      margin: 40px;
+      padding: 40px;
+      background: var(--card);
+      border-radius: 22px;
+      border: 4px dashed var(--primary);
+      min-height: 280px;
+      opacity: 0;
+      transition: all 0.6s ease;
+      position: relative;
+    }
+    .preview.active {
+      opacity: 1;
+      animation: zoomIn 0.7s ease-out;
+    }
+    @keyframes zoomIn {
+      0% { opacity: 0; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .story-img, .story-video {
+      width: 100%;
+      max-height: 320px;
+      object-fit: cover;
+      border-radius: 18px;
+      margin: 22px 0;
+      box-shadow: 0 12px 30px var(--shadow);
+    }
+    .story-video {
+      cursor: pointer;
+    }
+    .story-title {
+      font-size: 2.3em;
+      margin: 20px 0;
+      font-weight: bold;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .story-text {
+      line-height: 2.1;
+      color: var(--text);
+      font-size: 1.2em;
+      white-space: pre-wrap;
+    }
+
+    .action-buttons {
+      text-align: center;
+      margin-top: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      display: flex;
+    }
+
+    .fullscreen-btn, .scroll-top {
+      position: fixed;
+      bottom: 20px; right: 20px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      font-size: 1.2em;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    .preview.active .fullscreen-btn { display: block; }
+    .scroll-top { bottom: 70px; display: none; }
+    .scroll-top.visible { display: block; }
+
+    footer {
+      text-align: center;
+      padding: 28px;
+      background: #2d3436;
+      color: var(--primary);
+      font-size: 1.15em;
+      font-weight: bold;
+    }
+    footer span { color: var(--secondary); }
+  </style>
+</head>
+<body>
+
+  <div class="particles" id="particles"></div>
+
+  <div class="container">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    
+    <header>
+      <h1>داستان‌گوی دیجیتال</h1>
+      <p class="subtitle">بنویس، صدا و فیلم بذار، ذخیره کن، به اشتراک بذار!</p>
+    </header>
+
+    <div class="story-maker">
+      <div class="template-select" id="templates">
+        <p><strong>موضوع انتخاب کن:</strong></p>
+        <button class="template-btn" onclick="setTemplate('سفر به جنگل جادویی')">جنگل جادویی</button>
+        <button class="template-btn" onclick="setTemplate('اختراع ربات مهربان')">ربات مهربان</button>
+        <button class="template-btn" onclick="setTemplate('یک روز در مریخ')">مریخ‌نشین</button>
+        <button class="template-btn" onclick="setTemplate('')">آزاد</button>
+      </div>
+
+      <div class="input-group">
+        <label for="title">عنوان داستان:</label>
+        <input type="text" id="title" placeholder="مثلاً: ماجرای اژدها..." oninput="debouncedUpdate()" />
+      </div>
+
+      <div class="input-group">
+        <label>تصویر داستان:</label>
+        <input type="text" id="imageUrl" placeholder="لینک تصویر (اختیاری)" oninput="debouncedUpdate()" />
+        <label class="upload-label">
+          <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(this.files[0])" />
+          آپلود تصویر
+        </label>
+        <div class="media-preview" id="imagePreview"></div>
+      </div>
+
+      <div class="input-group">
+        <label>صداگذاری داستان (MP3):</label>
+        <label class="upload-label">
+          <input type="file" id="audioUpload" accept="audio/mp3" onchange="handleAudioUpload(this.files[0])" />
+          آپلود صدا
+        </label>
+        <div class="media-preview" id="audioPreview"></div>
+      </div>
+
+      <div class="input-group">
+        <label>ویدیو داستان (MP4):</label>
+        <label class="upload-label">
+          <input type="file" id="videoUpload" accept="video/mp4" onchange="handleVideoUpload(this.files[0])" />
+          آپلود ویدیو
+        </label>
+        <div class="media-preview" id="videoPreview"></div>
+      </div>
+
+      <div class="input-group">
+        <label for="story">متن داستان:</label>
+        <textarea id="story" placeholder="داستانتو با ایموجی بنویس..." oninput="debouncedUpdate()"></textarea>
+      </div>
+
+      <div class="word-count" id="wordCount">۰ کلمه</div>
+
+      <div class="action-buttons" id="actions">
+        <button class="btn" onclick="showFinal()">نمایش نهایی</button>
+        <button class="btn" onclick="randomColor()">رنگ تصادفی</button>
+        <button class="btn" onclick="typeEffect()">افکت تایپ</button>
+        <button class="btn" onclick="saveAsImage()">ذخیره عکس</button>
+        <button class="btn" onclick="saveFullStory()">ذخیره کامل</button>
+        <button class="btn" onclick="loadFullStory()">بازخوانی</button>
+        <button class="btn" onclick="shareFull()">اشتراک‌گذاری کامل</button>
+        <button class="btn" onclick="sharePostcard()">کارت پستال</button>
+        <button class="btn" onclick="shareEmail()">ایمیل</button>
+        <button class="btn" onclick="copyLink()">کپی لینک</button>
+        <button class="btn" onclick="saveAsPDF()">ذخیره PDF</button>
+        <button class="btn" onclick="printStory()">چاپ</button>
+        <button class="btn" onclick="copyText()">کپی متن</button>
+        <button class="btn" onclick="downloadText()">ذخیره متن</button>
+        <button class="btn" onclick="downloadAllMedia()">دانلود همه</button>
+        <button class="btn" onclick="toggleReadOnly()">حالت خواندن</button>
+        <button class="btn" onclick="saveAsJSON()">ذخیره JSON</button>
+        <button class="btn" onclick="resetAll()">شروع دوباره</button>
+      </div>
+    </div>
+
+    <div id="preview" class="preview">
+      <button class="fullscreen-btn" onclick="toggleFullscreen()">🖥️</button>
+      <h2 class="story-title" id="previewTitle">عنوان ظاهر می‌شه...</h2>
+      <img id="previewImg" class="story-img" src="" alt="تصویر" style="display:none;" />
+      <video id="previewVideo" class="story-video" controls style="display:none;"></video>
+      <audio id="previewAudio" controls style="display:none; width:100%; margin:15px 0;"></audio>
+      <p class="story-text" id="previewText">متن داستان اینجا نمایش داده می‌شه...</p>
+    </div>
+  </div>
+
+  <button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">⬆️</button>
+
+  <footer>
+    سازنده <span>حسین هادی پور</span>
+  </footer>
+
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
+      }
+    });
+
+    // تم
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme') || 'light';
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      Toast.fire({ icon: 'success', title: `حالت ${newTheme === 'dark' ? 'تاریک' : 'روشن'} فعال شد` });
+    }
+    if (localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+    // ذرات
+    function createParticle(x, y) {
+      const emojis = ['✨', '⭐', '🌟', '🎉', '🚀', '🪄', '🌈', '🎈'];
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      p.style.left = (x || Math.random() * 100) + 'vw';
+      p.style.top = (y || 100) + 'vh';
+      p.style.animationDelay = Math.random() * 5 + 's';
+      document.getElementById('particles').appendChild(p);
+      setTimeout(() => p.remove(), 6000);
+    }
+    setInterval(() => createParticle(), 700);
+
+    // انیمیشن دکمه‌ها
+    window.onload = () => {
+      setTimeout(() => {
+        document.querySelectorAll('.template-btn, .btn').forEach((el, i) => {
+          setTimeout(() => el.classList.add('visible'), i * 80);
+        });
+      }, 300);
+      loadFullStory();
+      window.addEventListener('scroll', () => {
+        document.querySelector('.scroll-top').classList.toggle('visible', window.scrollY > 300);
+      });
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          btn.classList.add('ripple');
+          setTimeout(() => btn.classList.remove('ripple'), 600);
+          createParticle(e.clientX / window.innerWidth * 100, e.clientY / window.innerHeight * 100);
+        });
+      });
+    };
+
+    // تأخیر هوشمند برای پیش‌نمایش
+    let updateTimeout;
+    function debouncedUpdate() {
+      clearTimeout(updateTimeout);
+      updateTimeout = setTimeout(updatePreview, 300);
+    }
+
+    // پیش‌نمایش زنده
+    function updatePreview() {
+      const title = document.getElementById('title').value.trim();
+      const story = document.getElementById('story').value.trim();
+
+      document.getElementById('previewTitle').textContent = title || 'عنوان ظاهر می‌شه...';
+      document.getElementById('previewText').textContent = story || 'متن داستان اینجا نمایش داده می‌شه...';
+
+      const words = story.trim() ? story.trim().split(/\s+/).length : 0;
+      document.getElementById('wordCount').textContent = `${words} کلمه`;
+
+      if (title && story) document.getElementById('preview').classList.add('active');
+      suggestTemplate(story);
+    }
+
+    // پیشنهاد خودکار تمپلیت
+    function suggestTemplate(story) {
+      const templates = ['سفر به جنگل جادویی', 'اختراع ربات مهربان', 'یک روز در مریخ'];
+      const keywords = {
+        'سفر به جنگل جادویی': ['جنگل', 'جادو', 'ماجرا'],
+        'اختراع ربات مهربان': ['ربات', 'اختراع', 'مهربان'],
+        'یک روز در مریخ': ['مریخ', 'فضا', 'سفر']
+      };
+      let suggestion = '';
+      for (const temp of templates) {
+        if (keywords[temp].some(k => story.includes(k))) {
+          suggestion = temp;
+          break;
+        }
+      }
+      if (suggestion) {
+        Toast.fire({ icon: 'info', title: `پیشنهاد: "${suggestion}"` });
+      }
+    }
+
+    // آپلود تصویر
+    function handleImageUpload(file) {
+      if (!file) return Toast.fire({ icon: 'error', title: 'تصویر انتخاب نشده!' });
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.getElementById('previewImg');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        document.getElementById('imagePreview').innerHTML = `
+          <img src="${e.target.result}" style="max-height:150px; border-radius:12px;">
+          <button class="remove-media" onclick="removeMedia('image')">✖</button>
+        `;
+        debouncedUpdate();
+        Toast.fire({ icon: 'success', title: 'تصویر آپلود شد!' });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // آپلود صدا
+    function handleAudioUpload(file) {
+      if (!file) return Toast.fire({ icon: 'error', title: 'صدا انتخاب نشده!' });
+      const url = URL.createObjectURL(file);
+      document.getElementById('audioPreview').innerHTML = `
+        <audio controls src="${url}"></audio>
+        <button class="remove-media" onclick="removeMedia('audio')">✖</button>
+      `;
+      const audio = document.getElementById('previewAudio');
+      audio.src = url;
+      audio.style.display = 'block';
+      Toast.fire({ icon: 'success', title: 'صدا آپلود شد!' });
+    }
+
+    // آپلود ویدیو
+    function handleVideoUpload(file) {
+      if (!file) return Toast.fire({ icon: 'error', title: 'ویدیو انتخاب نشده!' });
+      const url = URL.createObjectURL(file);
+      document.getElementById('videoPreview').innerHTML = `
+        <video controls src="${url}" style="max-height:150px;"></video>
+        <button class="remove-media" onclick="removeMedia('video')">✖</button>
+      `;
+      const video = document.getElementById('previewVideo');
+      video.src = url;
+      video.style.display = 'block';
+      Toast.fire({ icon: 'success', title: 'ویدیو آپلود شد!' });
+    }
+
+    // حذف رسانه
+    function removeMedia(type) {
+      if (type === 'image') {
+        document.getElementById('previewImg').src = '';
+        document.getElementById('previewImg').style.display = 'none';
+        document.getElementById('imagePreview').innerHTML = '';
+        document.getElementById('imageUpload').value = '';
+      } else if (type === 'audio') {
+        document.getElementById('previewAudio').src = '';
+        document.getElementById('previewAudio').style.display = 'none';
+        document.getElementById('audioPreview').innerHTML = '';
+        document.getElementById('audioUpload').value = '';
+      } else if (type === 'video') {
+        document.getElementById('previewVideo').src = '';
+        document.getElementById('previewVideo').style.display = 'none';
+        document.getElementById('videoPreview').innerHTML = '';
+        document.getElementById('videoUpload').value = '';
+      }
+      Toast.fire({ icon: 'info', title: `${type === 'image' ? 'تصویر' : type === 'audio' ? 'صدا' : 'ویدیو'} حذف شد!` });
+    }
+
+    // تمپلیت‌های طولانی
+    function setTemplate(topic) {
+      document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const templates = {
+        'سفر به جنگل جادویی': {
+          title: 'سفر به جنگل جادویی 🌳✨',
+          story: `روزی از روزها، من و دوستانم تصمیم گرفتیم به جنگلی برویم که همه می‌گفتند پر از رمز و راز است. وقتی به جنگل رسیدیم، مه غلیظی همه‌جا رو گرفته بود. ناگهان یک پرنده عجیب با پرهای رنگین‌کمانی جلومون ظاهر شد و گفت: "برای پیدا کردن گنج جادویی، باید سه آزمون رو بگذرونید!" \n\n**آزمون اول: معمای نور** \nباید مسیر درست رو از بین نورهای رنگی پیدا می‌کردیم. با همکاری تونستیم معما رو حل کنیم. \n\n**آزمون دوم: کمک به موجودات جنگل** \nیک خرگوش زخمی رو پیدا کردیم و با برگ‌های شفابخش درمانش کردیم. \n\n**آزمون سوم: قلب پاک** \nباید چیزی که برامون عزیز بود رو فدا می‌کردیم. من ساعت پدربزرگم رو گذاشتم کنار و در عوض گنج واقعی رو پیدا کردیم: دوستی و شجاعت! \n\nاین ماجرا بهمون یاد داد که گاهی گنج واقعی، توی قلبمونه. 🌟`
+        },
+        'اختراع ربات مهربان': {
+          title: 'اختراع ربات مهربان 🤖❤️',
+          story: `من همیشه عاشق ساختن چیزهای جدید بودم. توی اتاقم یه کارگاه کوچیک داشتم با کلی پیچ و مهره. تصمیم گرفتم یه ربات بسازم که به همه کمک کنه. اسمش رو گذاشتم "مهربان ۳۰۰۰". \n\nمهربان می‌تونست: \n- به سالمندان غذا بده و باهاشون گپ بزنه. \n- به بچه‌ها درس‌های سخت رو یاد بده. \n- آشغال‌های پارک رو جمع کنه و محیط زیست رو تمیز نگه داره. \n\nیه روز مهربان یه بچه‌ گربه رو از وسط خیابون نجات داد و همه شهر عاشقش شدن. من فهمیدم که فناوری وقتی قشنگه که قلب مهربونی پشتش باشه. 🚀`
+        },
+        'یک روز در مریخ': {
+          title: 'یک روز در مریخ 🚀🔴',
+          story: `سال ۲۶۰۰ بود و من اولین دانش‌آموز ایرانی بودم که با سفینه "نور ایرانی" به مریخ سفر کردم. وقتی از سفینه پیاده شدم، خاک قرمز مریخ زیر پاهام برق می‌زد. \n\nتوی مریخ: \n- جاذبه کم بود و می‌تونستم ۵ متر بپرم! \n- دو قمر فوبوس و دیموس رو توی آسمون دیدم. \n- یه طوفان گرد و غبار عظیم اومد و من توی یه غار پنهان شدم. \n\nتوی غار یه پیام از موجودات فضایی پیدا کردم که می‌گفت: "زمین رو دوست داشته باشید." من یه پیام برای زمینی‌ها فرستادم: "مریخ زیباست، اما زمین خونه ماست. بیاید مراقبش باشیم!" 🌍`
+        },
+        '': { title: '', story: '' }
+      };
+
+      const data = templates[topic] || { title: '', story: '' };
+      document.getElementById('title').value = data.title;
+      document.getElementById('story').value = data.story;
+      debouncedUpdate();
+      Toast.fire({ icon: 'success', title: `موضوع "${topic || 'آزاد'}" انتخاب شد!` });
+    }
+
+    // نمایش نهایی
+    function showFinal() {
+      if (!document.getElementById('title').value.trim() || !document.getElementById('story').value.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'اوپس!',
+          text: 'عنوان و متن داستان رو پر کن!',
+          confirmButtonText: 'باشه'
+        });
+        return;
+      }
+      document.getElementById('preview').scrollIntoView({ behavior: 'smooth' });
+      Toast.fire({ icon: 'success', title: 'داستان نمایش داده شد!' });
+    }
+
+    // رنگ تصادفی
+    function randomColor() {
+      const colors = document.body.getAttribute('data-theme') === 'dark' 
+        ? ['#ff6b9d', '#feca57', '#55efc4', '#74b9ff'] 
+        : ['#fd79a8', '#fdcb6e', '#00b894', '#0984e3'];
+      const title = document.getElementById('previewTitle');
+      title.style.background = `linear-gradient(45deg, ${colors[Math.floor(Math.random() * colors.length)]}, ${colors[Math.floor(Math.random() * colors.length)]})`;
+      title.style.webkitBackgroundClip = 'text';
+      Toast.fire({ icon: 'info', title: 'رنگ عوض شد!' });
+    }
+
+    // افکت تایپ
+    function typeEffect() {
+      const text = document.getElementById('previewText').textContent;
+      document.getElementById('previewText').textContent = '';
+      let i = 0;
+      const speed = 25;
+      const interval = setInterval(() => {
+        if (i < text.length) {
+          document.getElementById('previewText').textContent += text[i++];
+        } else clearInterval(interval);
+      }, speed);
+      Toast.fire({ icon: 'success', title: 'افکت تایپ شروع شد!' });
+    }
+
+    // ذخیره عکس
+    function saveAsImage() {
+      const element = document.querySelector('.preview.active');
+      if (!element) return Swal.fire({
+        icon: 'warning',
+        title: 'اوپس!',
+        text: 'اول داستان رو بساز!',
+        confirmButtonText: 'باشه'
+      });
+      html2canvas(element, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `داستان_${document.getElementById('title').value || 'من'}_حسین.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        Toast.fire({ icon: 'success', title: 'عکس ذخیره شد!' });
+      });
+    }
+
+    // ذخیره کامل
+    function saveFullStory() {
+      const data = {
+        title: document.getElementById('title').value,
+        story: document.getElementById('story').value,
+        image: document.getElementById('previewImg').src,
+        audio: document.getElementById('previewAudio').src,
+        video: document.getElementById('previewVideo').src
+      };
+      localStorage.setItem('fullStory', JSON.stringify(data));
+      Swal.fire({
+        icon: 'success',
+        title: 'ذخیره شد!',
+        text: 'داستان کامل ذخیره شد.',
+        confirmButtonText: 'باشه'
+      });
+    }
+
+    // بازخوانی
+    function loadFullStory() {
+      const saved = localStorage.getItem('fullStory');
+      if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('title').value = data.title || '';
+        document.getElementById('story').value = data.story || '';
+        if (data.image && data.image.startsWith('data:image')) {
+          document.getElementById('previewImg').src = data.image;
+          document.getElementById('previewImg').style.display = 'block';
+          document.getElementById('imagePreview').innerHTML = `<img src="${data.image}" style="max-height:150px; border-radius:12px;"><button class="remove-media" onclick="removeMedia('image')">✖</button>`;
+        }
+        if (data.audio && data.audio.startsWith('blob:')) {
+          document.getElementById('previewAudio').src = data.audio;
+          document.getElementById('previewAudio').style.display = 'block';
+          document.getElementById('audioPreview').innerHTML = `<audio controls src="${data.audio}"></audio><button class="remove-media" onclick="removeMedia('audio')">✖</button>`;
+        }
+        if (data.video && data.video.startsWith('blob:')) {
+          document.getElementById('previewVideo').src = data.video;
+          document.getElementById('previewVideo').style.display = 'block';
+          document.getElementById('videoPreview').innerHTML = `<video controls src="${data.video}" style="max-height:150px;"></video><button class="remove-media" onclick="removeMedia('video')">✖</button>`;
+        }
+        debouncedUpdate();
+        Toast.fire({ icon: 'success', title: 'داستان بازخوانی شد!' });
+      }
+    }
+
+    // اشتراک‌گذاری کامل
+    async function shareFull() {
+      if (!document.getElementById('title').value.trim() || !document.getElementById('story').value.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'اوپس!',
+          text: 'عنوان و متن داستان رو پر کن!',
+          confirmButtonText: 'باشه'
+        });
+        return;
+      }
+
+      const title = document.getElementById('previewTitle').textContent;
+      const text = document.getElementById('previewText').textContent;
+      const fullText = `${title}\n\n${text}\n\nسازنده: حسین هادی پور`;
+      const files = [];
+      const img = document.getElementById('previewImg');
+      const audio = document.getElementById('previewAudio');
+      const video = document.getElementById('previewVideo');
+
+      // پیش‌نمایش قبل از اشتراک
+      let previewContent = `<h3>${title}</h3><p>${text.slice(0, 100)}...</p>`;
+      if (img.src && img.src.startsWith('data:image')) {
+        previewContent += `<img src="${img.src}" style="max-height:100px; border-radius:8px;">`;
+      }
+      if (audio.src) previewContent += `<p>صدا: آماده اشتراک</p>`;
+      if (video.src) previewContent += `<p>ویدیو: آماده اشتراک</p>`;
+
+      const result = await Swal.fire({
+        title: 'پیش‌نمایش اشتراک',
+        html: previewContent,
+        showCancelButton: true,
+        confirmButtonText: 'اشتراک‌گذاری',
+        cancelButtonText: 'لغو'
+      });
+
+      if (!result.isConfirmed) return;
+
+      // آماده‌سازی فایل‌ها
+      if (img.src && img.src.startsWith('data:image')) {
+        const blob = await (await fetch(img.src)).blob();
+        files.push(new File([blob], 'تصویر_داستان.jpg', { type: blob.type }));
+      }
+      if (audio.src && audio.src.startsWith('blob:')) {
+        const blob = await (await fetch(audio.src)).blob();
+        files.push(new File([blob], 'صدا_داستان.mp3', { type: blob.type }));
+      }
+      if (video.src && video.src.startsWith('blob:')) {
+        const blob = await (await fetch(video.src)).blob();
+        files.push(new File([blob], 'ویدیو_داستان.mp4', { type: blob.type }));
+      }
+
+      // اشتراک‌گذاری
+      if (navigator.share && navigator.canShare && navigator.canShare({ files })) {
+        try {
+          await navigator.share({
+            title: 'داستان من',
+            text: fullText,
+            files: files
+          });
+          Toast.fire({ icon: 'success', title: 'داستان با موفقیت به اشتراک گذاشته شد!' });
+        } catch (err) {
+          fallbackShare(fullText);
+        }
+      } else {
+        fallbackShare(fullText);
+      }
+    }
+
+    function fallbackShare(text) {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const options = [
+        { name: 'واتساپ', url: `https://wa.me/?text=${encodeURIComponent(text)}` },
+        { name: 'تلگرام', url: `https://t.me/share/url?url=&text=${encodeURIComponent(text)}` },
+        { name: 'اینستاگرام', url: `https://www.instagram.com/?url=${encodeURIComponent(text)}` },
+        { name: 'SMS', url: `sms:?body=${encodeURIComponent(text)}` }
+      ];
+
+      Swal.fire({
+        title: 'اشتراک‌گذاری',
+        html: options.map(o => `<a href="${o.url}" target="_blank" style="display:block;margin:10px;">${o.name}</a>`).join('') +
+              `<div id="qrcode" style="margin:20px auto;"></div>`,
+        didOpen: () => {
+          new QRCode(document.getElementById('qrcode'), { text: text, width: 150, height: 150 });
+        },
+        showCloseButton: true
+      });
+    }
+
+    // کارت پستال
+    async function sharePostcard() {
+      const element = document.querySelector('.preview');
+      if (!element.classList.contains('active')) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'اوپس!',
+          text: 'اول داستان رو بساز!',
+          confirmButtonText: 'باشه'
+        });
+        return;
+      }
+      html2canvas(element, { scale: 2 }).then(canvas => {
+        canvas.toBlob(async blob => {
+          const file = new File([blob], 'کارت_پستال_داستان.png', { type: 'image/png' });
+          if (navigator.share && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: 'کارت پستال داستان من' });
+            Toast.fire({ icon: 'success', title: 'کارت پستال به اشتراک گذاشته شد!' });
+          } else {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'کارت_پستال_داستان.png';
+            link.click();
+            Toast.fire({ icon: 'success', title: 'کارت پستال دانلود شد!' });
+          }
+        });
+      });
+    }
+
+    // ایمیل
+    function shareEmail() {
+      const title = document.getElementById('previewTitle').textContent;
+      const text = document.getElementById('previewText').textContent;
+      const body = `${title}\n\n${text}\n\nسازنده: حسین هادی پور`;
+      window.location.href = `mailto:?subject=داستان من&body=${encodeURIComponent(body)}`;
+      Toast.fire({ icon: 'success', title: 'ایمیل آماده ارسال است!' });
+    }
+
+    // کپی لینک موقت
+    function copyLink() {
+      const data = JSON.stringify({
+        title: document.getElementById('title').value,
+        story: document.getElementById('story').value,
+        image: document.getElementById('previewImg').src,
+        audio: document.getElementById('previewAudio').src,
+        video: document.getElementById('previewVideo').src
+      });
+      const url = 'data:text/plain;base64,' + btoa(unescape(encodeURIComponent(data)));
+      navigator.clipboard.writeText(url).then(() => {
+        Toast.fire({ icon: 'success', title: 'لینک موقت کپی شد!' });
+      });
+    }
+
+    // ذخیره PDF
+    function saveAsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const title = document.getElementById('previewTitle').textContent;
+      const text = document.getElementById('previewText').textContent;
+      doc.setFont('Amiri', 'normal');
+      doc.text(title, 105, 20, { align: 'center' });
+      doc.text(text, 20, 40, { maxWidth: 170 });
+      doc.save(`داستان_${title || 'من'}.pdf`);
+      Toast.fire({ icon: 'success', title: 'PDF ذخیره شد!' });
+    }
+
+    // چاپ
+    function printStory() {
+      const printWindow = window.open('', '', 'height=600,width=800');
+      printWindow.document.write('<html><head><title>داستان من</title><style>body{font-family:Tahoma;text-align:center;padding:20px;}img,video,audio{max-width:100%;}</style></head><body>');
+      printWindow.document.write(document.querySelector('.preview').innerHTML);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.print();
+      Toast.fire({ icon: 'success', title: 'صفحه چاپ آماده است!' });
+    }
+
+    // کپی متن
+    function copyText() {
+      const text = `${document.getElementById('previewTitle').textContent}\n\n${document.getElementById('previewText').textContent}`;
+      navigator.clipboard.writeText(text).then(() => {
+        Toast.fire({ icon: 'success', title: 'متن کپی شد!' });
+      });
+    }
+
+    // ذخیره متن
+    function downloadText() {
+      const text = `${document.getElementById('previewTitle').textContent}\n\n${document.getElementById('previewText').textContent}`;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `داستان_${document.getElementById('title').value || 'من'}.txt`;
+      link.click();
+      Toast.fire({ icon: 'success', title: 'متن ذخیره شد!' });
+    }
+
+    // دانلود همه رسانه‌ها
+    function downloadAllMedia() {
+      const zip = new JSZip();
+      const promises = [];
+
+      const addFile = (url, name) => {
+        if (url && url.startsWith('blob:') || url.startsWith('data:image')) {
+          return fetch(url).then(r => r.blob()).then(blob => zip.file(name, blob));
+        }
+        return Promise.resolve();
+      };
+
+      promises.push(addFile(document.getElementById('previewImg').src, 'تصویر_داستان.jpg'));
+      promises.push(addFile(document.getElementById('previewAudio').src, 'صدا_داستان.mp3'));
+      promises.push(addFile(document.getElementById('previewVideo').src, 'ویدیو_داستان.mp4'));
+
+      Promise.all(promises).then(() => {
+        zip.generateAsync({ type: 'blob' }).then(content => {
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(content);
+          link.download = `داستان_${document.getElementById('title').value || 'من'}.zip`;
+          link.click();
+          Toast.fire({ icon: 'success', title: 'همه رسانه‌ها دانلود شدند!' });
+        });
+      });
+    }
+
+    // حالت فقط خواندن
+    let isReadOnly = false;
+    function toggleReadOnly() {
+      isReadOnly = !isReadOnly;
+      document.getElementById('title').disabled = isReadOnly;
+      document.getElementById('story').disabled = isReadOnly;
+      document.getElementById('imageUpload').disabled = isReadOnly;
+      document.getElementById('audioUpload').disabled = isReadOnly;
+      document.getElementById('videoUpload').disabled = isReadOnly;
+      document.querySelectorAll('.template-btn').forEach(b => b.disabled = isReadOnly);
+      Toast.fire({ icon: 'info', title: `حالت ${isReadOnly ? 'فقط خواندن' : 'ویرایش'} فعال شد!` });
+    }
+
+    // ذخیره JSON
+    function saveAsJSON() {
+      const data = {
+        title: document.getElementById('title').value,
+        story: document.getElementById('story').value,
+        image: document.getElementById('previewImg').src,
+        audio: document.getElementById('previewAudio').src,
+        video: document.getElementById('previewVideo').src
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `داستان_${document.getElementById('title').value || 'من'}.json`;
+      link.click();
+      Toast.fire({ icon: 'success', title: 'JSON ذخیره شد!' });
+    }
+
+    // ریست
+    function resetAll() {
+      Swal.fire({
+        title: 'مطمئنی؟',
+        text: 'همه چیز پاک می‌شه!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'بله، پاک کن!',
+        cancelButtonText: 'نه، برگرد!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          ['title', 'story', 'imageUrl'].forEach(id => document.getElementById(id).value = '');
+          ['previewImg', 'previewAudio', 'previewVideo'].forEach(id => {
+            const el = document.getElementById(id);
+            el.src = ''; el.style.display = 'none';
+          });
+          ['imagePreview', 'audioPreview', 'videoPreview'].forEach(id => document.getElementById(id).innerHTML = '');
+          document.getElementById('preview').classList.remove('active');
+          localStorage.removeItem('fullStory');
+          isReadOnly = false;
+          document.getElementById('title').disabled = false;
+          document.getElementById('story').disabled = false;
+          document.getElementById('imageUpload').disabled = false;
+          document.getElementById('audioUpload').disabled = false;
+          document.getElementById('videoUpload').disabled = false;
+          document.querySelectorAll('.template-btn').forEach(b => b.disabled = false);
+          debouncedUpdate();
+          Toast.fire({ icon: 'info', title: 'همه چیز پاک شد!' });
+        }
+      });
+    }
+
+    // تمام‌صفحه
+    function toggleFullscreen() {
+      const elem = document.getElementById('preview');
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        elem.requestFullscreen();
+      }
+      Toast.fire({ icon: 'success', title: `حالت ${document.fullscreenElement ? 'تمام‌صفحه' : 'عادی'} فعال شد!` });
+    }
+  </script>
+</body>
+</html>
